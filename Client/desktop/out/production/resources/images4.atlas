@@ -1,0 +1,188 @@
+
+images4.png
+size: 512, 64
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+Fire Bullet
+  rotate: false
+  xy: 470, 38
+  size: 14, 14
+  orig: 14, 14
+  offset: 0, 0
+  index: -1
+bulletGlow
+  rotate: false
+  xy: 205, 12
+  size: 44, 40
+  orig: 44, 40
+  offset: 0, 0
+  index: -1
+goblin_idle_anim_f1
+  rotate: false
+  xy: 416, 36
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_idle_anim_f0
+  rotate: false
+  xy: 416, 36
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_idle_anim_f2
+  rotate: false
+  xy: 380, 36
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_idle_anim_f3
+  rotate: false
+  xy: 434, 36
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_idle_anim_f5
+  rotate: false
+  xy: 362, 36
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_idle_anim_f4
+  rotate: false
+  xy: 362, 36
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_run_anim_f0
+  rotate: false
+  xy: 434, 18
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_run_anim_f1
+  rotate: false
+  xy: 398, 18
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_run_anim_f2
+  rotate: false
+  xy: 362, 18
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_run_anim_f3
+  rotate: false
+  xy: 416, 18
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_run_anim_f4
+  rotate: false
+  xy: 398, 36
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+goblin_run_anim_f5
+  rotate: false
+  xy: 452, 36
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+idle down1
+  rotate: false
+  xy: 467, 17
+  size: 11, 17
+  orig: 11, 17
+  offset: 0, 0
+  index: -1
+idle left1
+  rotate: false
+  xy: 452, 17
+  size: 13, 17
+  orig: 13, 17
+  offset: 0, 0
+  index: -1
+idle right1
+  rotate: false
+  xy: 480, 20
+  size: 12, 16
+  orig: 12, 16
+  offset: 0, 0
+  index: -1
+idle up1
+  rotate: false
+  xy: 486, 39
+  size: 13, 13
+  orig: 13, 13
+  offset: 0, 0
+  index: -1
+weapon_0012_Package-----------------
+  rotate: false
+  xy: 156, 5
+  size: 47, 47
+  orig: 47, 47
+  offset: 0, 0
+  index: -1
+weapon_0015_Package-----------------
+  rotate: false
+  xy: 54, 3
+  size: 49, 49
+  orig: 49, 49
+  offset: 0, 0
+  index: -1
+weapon_0017_Package-----------------
+  rotate: false
+  xy: 105, 3
+  size: 49, 49
+  orig: 49, 49
+  offset: 0, 0
+  index: -1
+weapon_0021_Package-----------------
+  rotate: false
+  xy: 2, 2
+  size: 50, 50
+  orig: 50, 50
+  offset: 0, 0
+  index: -1
+weapon_0030_Package-----------------
+  rotate: false
+  xy: 251, 17
+  size: 35, 35
+  orig: 35, 35
+  offset: 0, 0
+  index: -1
+weapon_0031_Package-----------------
+  rotate: false
+  xy: 380, 18
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+weapon_0060_Package-----------------
+  rotate: false
+  xy: 288, 17
+  size: 35, 35
+  orig: 35, 35
+  offset: 0, 0
+  index: -1
+weapon_0061_Package-----------------
+  rotate: false
+  xy: 325, 17
+  size: 35, 35
+  orig: 35, 35
+  offset: 0, 0
+  index: -1

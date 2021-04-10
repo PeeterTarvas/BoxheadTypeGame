@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Iti0301-2021-Client/Client/Iti0301-2021-Client/Client.iml" filepath="$PROJECT_DIR$/Iti0301-2021-Client/Client/Iti0301-2021-Client/Client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Iti0301-2021-Server/Server/Iti0301-2021-Server/Server.iml" filepath="$PROJECT_DIR$/Iti0301-2021-Server/Server/Iti0301-2021-Server/Server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/iti0301-2021.iml" filepath="$PROJECT_DIR$/.idea/iti0301-2021.iml" />
+    </modules>
+  </component>
+</project>
