@@ -1,7 +1,11 @@
 package packets;
 
+/**
+ * Packet superclass.
+ */
 public class Packet {
-    private String message;  // Asendada see id või nimega? Võiks mõlemad hoida, sets neid läheb alati vaja.
+
+    private String message;
 
     public void setMessage(String message) {
         this.message = message;

@@ -5,16 +5,19 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class GameCharacterTest {
+public class GameCharacterTest {
 
+    /**
+     * Test GameCharacter health getter and setter.
+     */
     @Test
-    public void testGameCharacterMoveToPos() {
-        Rectangle boundingBox = new Rectangle(20f, 20f, 10f, 10f);
-        GameCharacter gameCharacter = new GameCharacter(1f, boundingBox, 20f, 20f,
-                10f, 10f, "idle up1");
+    public void testGameCharacterHealthGetterSetter() {
+        Rectangle gameCharacterRectangle = new Rectangle(75f, 75f, 10f, 10f);
+        GameCharacter gameCharacter = new GameCharacter(2f, gameCharacterRectangle, 150f, 150f, 10f, 10f);
 
-        gameCharacter.moveToNewPos(25f, 45f);
-        assertEquals(25f, gameCharacter.getBoundingBox().getX());
-        assertEquals(45f, gameCharacter.getBoundingBox().getY());
+        gameCharacter.setHealth(100);
+
+        assertEquals(100, gameCharacter.getHealth());
+
     }
 }

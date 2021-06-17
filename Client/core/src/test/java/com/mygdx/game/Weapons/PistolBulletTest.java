@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PistolBulletTest {
 
+    /**
+     * Test making a PistolBullet instance.
+     */
     @Test
     public void testMakePistolBullet() {
         PistolBullet newBullet = new PistolBullet();
@@ -21,6 +24,9 @@ class PistolBulletTest {
         assertEquals("up", newBullet.getDirection());
     }
 
+    /**
+     * Test resetting a PistolBullet.
+     */
     @Test
     public void testPistolBulletReset() {
         PistolBullet newBullet = new PistolBullet();
@@ -32,5 +38,14 @@ class PistolBulletTest {
         assertEquals(0, newBullet.getBoundingBox().getWidth());
         assertEquals(0, newBullet.getBoundingBox().getHeight());
         assertNull(newBullet.getDirection());
+    }
+
+    /**
+     * Test PistolBulletPool class.
+     */
+    @Test
+    public void testPistolBulletPool() {
+        PistolBulletPool pistolBulletPool = new PistolBulletPool();
+        assertEquals(PistolBullet.class, pistolBulletPool.newObject().getClass());
     }
 }

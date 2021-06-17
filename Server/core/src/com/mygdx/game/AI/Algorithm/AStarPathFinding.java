@@ -18,6 +18,13 @@ public class AStarPathFinding {
     private Zombie zombie;
     private PlayerGameCharacter playerGameCharacter;
 
+    /**
+     * Class AStarPathFinding constructor.
+     *
+     * @param world where the Zombie and the PlayerGameCharacter are (World)
+     * @param zombie instance whose coordinates are used for the start node (Zombie)
+     * @param playerGameCharacter instance whose coordinates are used for the end node (PlayerGameCharacter)
+     */
     public AStarPathFinding(World world, Zombie zombie, PlayerGameCharacter playerGameCharacter) {
         this.world = world;
         this.zombie = zombie;
@@ -31,6 +38,11 @@ public class AStarPathFinding {
         return solutionGraphPath;
     }
 
+    /**
+     * Method for calculating a path between start node (Zombie) and end node (PlayerGameCharacter).
+     *
+     * Method uses GDX-Ai fully implemented A* pathfinder. Calculated path is stored in solutionGraphPath instance.
+     */
     public void calculatePath() {
         // Clear graph.
         solutionGraphPath.clear();
@@ -41,9 +53,6 @@ public class AStarPathFinding {
         int targetX = (int) playerGameCharacter.getBoundingBox().getX();
         int targetY = (int) playerGameCharacter.getBoundingBox().getY();
 
-        // System.out.println("Zombie x: " + startX + " y " + startY);
-        // System.out.println("Target x: " + targetX + " y " + targetY);
-
         world.getGraph().setWorld(world);
         // Convert Zombie x and y into a node.
         Node startNode = world.getGraph().getNodeByXAndY(startX, startY);
@@ -51,10 +60,7 @@ public class AStarPathFinding {
         // Convert PlayerGameCharacter x and y into a node:
         Node endNode = world.getGraph().getNodeByXAndY(targetX, targetY);
 
-        // System.out.println("Start node " + startNode);
-        // System.out.println("End node " + endNode);
-
+        // Calculate path. Path is stored in SolutionGraphPath instance.
         aStarPathFinder.searchNodePath(startNode, endNode, manhattanDistanceHeuristic, solutionGraphPath);
-        // System.out.println("Path: " + solutionGraphPath.getCount());
     }
 }

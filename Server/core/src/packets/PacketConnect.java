@@ -1,9 +1,11 @@
 package packets;
 
+/**
+ * Packet that is used when a client wants to connect to the server.
+ */
 public class PacketConnect extends Packet {
 
     private String playerName;
-    // Siin peaks mingi id vms ka olema
 
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
@@ -12,6 +14,4 @@ public class PacketConnect extends Packet {
     public String getPlayerName(){
         return playerName;
     }
-
-
 }

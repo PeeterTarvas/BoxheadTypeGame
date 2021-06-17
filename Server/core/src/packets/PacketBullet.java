@@ -1,16 +1,16 @@
 package packets;
 
+/**
+ * Packet that is used to send information about a PistolBullet when a client shoots a new bullet.
+ */
 public class PacketBullet extends Packet {
 
     private String playerName;
     private int id;
     private float bulletXCoordinate;
     private float bulletYCoordinate;
-
-    private String bulletTextureRegion;  // String, mis ütleb, et milline see kuul on.
-    private int damage;  // Kui palju viga teeb see kuul GameChracter'ile.
-
-    // Suund kuhu kuul liigub
+    private String bulletTextureString;
+    private int damage;
     private String movingDirection;
 
 
@@ -34,8 +34,8 @@ public class PacketBullet extends Packet {
         this.movingDirection = direction;
     }
 
-    public void setBulletTextureRegion(String bulletTextureRegion) {
-        this.bulletTextureRegion = bulletTextureRegion;
+    public void setBulletTextureString(String bulletTextureString) {
+        this.bulletTextureString = bulletTextureString;
     }
 
     public void setDamage(int damage) {
@@ -62,8 +62,8 @@ public class PacketBullet extends Packet {
         return movingDirection;
     }
 
-    public String getBulletTextureRegion() {
-        return bulletTextureRegion;
+    public String getBulletTextureString() {
+        return bulletTextureString;
     }
 
     public int getDamage() {

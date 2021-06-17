@@ -1,65 +1,92 @@
 package com.mygdx.game.Server;
 
 import com.mygdx.game.Characters.Zombie;
-import com.mygdx.game.Server.ServerConnection;
+import com.mygdx.game.World.World;
 
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
 
+
+/**
+ * ServerUpdateThread class is used for updating World (Zombies, PistolBullets etc).
+ */
 public class ServerUpdateThread implements Runnable {
 
     private ServerConnection serverConnection;
+    private World serverWorld;
     private int countBetweenSendingNewZombies = 0;
     private int newZombiesSent = 0;
+
+    private static final int COUNT_BETWEEN_SENDING_NEW_ZOMBIES = 250;
+    private static final int ZOMBIES_SENT_IN_ONE_TICK = 4;
 
     public void setServerConnection(ServerConnection serverConnection) {
         this.serverConnection = serverConnection;
     }
 
-    public ServerConnection getServerConnection() {
-        return serverConnection;
+    public void setServerWorld(World serverWorld) {
+        this.serverWorld = serverWorld;
     }
 
     @Override
     public void run() {
         while (true) {
             try {
-                if (serverConnection.serverWorld.hasClients()) {
-                    // Siin on mängu andmete uuendamise meetodid.
-                    serverConnection.updateBullets();
+                if (serverWorld.getClients().size() == 3) {
+                    serverWorld.setNewGame(true);
 
-                    // Saadab zombied, kes tuleb mängust eemaldada.
-                    // Selle saaks äkki kuidagi sendUpdatedZombies meetodiga ühendada?
-                    if (!serverConnection.serverWorld.getZombiesToBeRemoved().isEmpty()) {
-                        serverConnection.sendRemoveZombiesFromGame(serverConnection.serverWorld.getAndEmptyZombiesToBeRemovedList());
+                    // Update serverWorld bullets and send updated bullets to all connections.
+                    try {
+                        serverConnection.sendUpdatedBullets();
+                    } catch (ConcurrentModificationException exception) {
+                        System.out.println("ConcurrentModificationException");
+                    }
+
+                    // Send Zombies who are going to be removed from the game.
+                    if (!serverWorld.getZombiesToBeRemoved().isEmpty()) {
+                        serverConnection.sendZombiesToRemoveFromGame(serverWorld.getAndEmptyZombiesToBeRemovedList());
                     }
 
                     // Wave
-                    if (serverConnection.serverWorld.isNewWave() && newZombiesSent < serverConnection.serverWorld.getZombiesInWave() && countBetweenSendingNewZombies == 250) {
-                        List<Zombie> newZombies = serverConnection.serverWorld.createZombies();
-                        newZombiesSent += 4;
+                    if (serverWorld.isNewWave() && newZombiesSent < serverWorld.getZombiesInWave()
+                            && countBetweenSendingNewZombies == COUNT_BETWEEN_SENDING_NEW_ZOMBIES) {
+                        // If is new wave and has not sent enough Zombies
+                        // and count between zombies is 250 then send new Zombies to all connections.
+                        List<Zombie> newZombies = serverWorld.createZombies();
+                        newZombiesSent += ZOMBIES_SENT_IN_ONE_TICK;
                         countBetweenSendingNewZombies = 0;
                         serverConnection.sendNewZombies(newZombies);
-                    } else if (newZombiesSent == serverConnection.serverWorld.getZombiesInWave()) {
-                        serverConnection.serverWorld.setNewWave(false);
+                    } else if (newZombiesSent == serverWorld.getZombiesInWave()) {
+                        // If has sent enough Zombies then stop sending new Zombie.
+                        serverWorld.setNewWave(false);
                         newZombiesSent = 0;
                         countBetweenSendingNewZombies = 0;
-                    } else if (serverConnection.serverWorld.isNewWave() && newZombiesSent < serverConnection.serverWorld.getZombiesInWave()) {
+                    } else if (serverWorld.isNewWave() && newZombiesSent < serverWorld.getZombiesInWave()) {
                         countBetweenSendingNewZombies += 1;
                     }
 
-                    // Saadab uuendatud zombied.
-                    if (!serverConnection.serverWorld.getZombieMap().isEmpty()) {  // Siin on viga -> saadetakse, tühi map, aga see vist ei sega hetkel mängu.
-                        // System.out.println("serverConnection.sendUpdatedZombies");
-                        // System.out.println(serverConnection.serverWorld.getZombieMap());
+                    // Update and send Zombies.
+                    if (!serverWorld.getZombieMap().isEmpty()) {
                         serverConnection.sendUpdatedZombies();
                     }
+                } else if (serverWorld.getClients().isEmpty() && serverWorld.isNewGame()) {
+                    // When game is over Server variables are reset.
+                    // Reset ServerConnection, World, Zombie and ServerUpdateThread variables.
+                    System.out.println("ServerUpdateThread restart");
+                    serverConnection.restartServer();
+                    serverWorld.restartWorld();
+                    Zombie.restartZombie();
+                    countBetweenSendingNewZombies = 0;
+                    newZombiesSent = 0;
                 }
                 sleep(5);
-            } catch (Exception e) {
-                //System.out.println(Arrays.toString(e.getStackTrace()));
+
+            } catch (InterruptedException e) {
+                System.out.println("Exception: " + Arrays.toString(e.getStackTrace()));
+                System.out.println("Cause: " + e.getCause().toString());
             }
         }
     }

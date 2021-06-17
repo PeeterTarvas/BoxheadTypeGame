@@ -17,7 +17,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
-import com.mygdx.game.Characters.GameCharacter;
+import com.mygdx.game.Characters.PlayerGameCharacter;
 import com.mygdx.game.Characters.Zombie;
 import com.mygdx.game.Characters.ZombiePool;
 import com.mygdx.game.GameInfo.ClientWorld;
@@ -31,100 +31,96 @@ import java.util.Locale;
 
 public class GameScreen implements Screen, InputProcessor {
 
-    // Screen.
+    // Screen
     private final OrthographicCamera camera;
     private final OrthographicCamera scoreCam;
     private StretchViewport stretchViewport;
     boolean buttonHasBeenPressed;
-    Integer counter = 0;
+    private Integer counter = 0;
+    private int shotgunTimer = 120, pistolTimer = 120, instructionsTimer = 330;
+    private BitmapFont font;
+    private BitmapFont nameFont;
 
-    // Graphics and Texture (background, character).
+    // Graphics and Texture
     private final SpriteBatch batch;
     private TextureAtlas textureAtlas;
     private TiledMap tiledMap;
     private TiledMapRenderer tiledMapRenderer;
 
-    // Siin hoitakse joonistatud PistolBulleteid, et neid uuesti joonistada.
+    // Pools, bullets and lives
     private PistolBulletPool pistolBulletPool = new PistolBulletPool();
-    // Siin hoitakse joonistatud Zombie'sid, et neid uuesti joonistada.
     private ZombiePool zombiePool = new ZombiePool();
+    private boolean playerGameCharactersHaveLives = true;
+    private LinkedList<PistolBullet> playerPistolBulletList;
+    private boolean isRenderingBullets = false;
 
-    // Timing.
-    private int backgroundOffset;
-    private int weaponTimer = 200;
-
-    // World parameters, how big the box is going to be.
+    // World parameters
     private final float WORLD_WIDTH = 285;
     private final float WORLD_HEIGHT = 285;
 
-    // From this clientWorld the character Map is accessed and in future other data as well
-    ClientWorld clientWorld;
+    // Client's connection, world
+    private ClientConnection clientConnection;
+    private ClientWorld clientWorld;
 
-    //Clients connection
-    ClientConnection clientConnection;
-
-    private LinkedList<PistolBullet> playerPistolBulletList;
-    public boolean isRenderingBullets = false;
-
-    //Heads-Up Display
-    BitmapFont font;
-
-
-    public void registerClientConnection(ClientConnection clientConnection){
-        this.clientConnection = clientConnection;
-    }
-
+    /**
+     * GameScreen constructor
+     *
+     * @param clientWorld client's world
+     */
     public GameScreen (ClientWorld clientWorld) {
 
         this.clientWorld = clientWorld;
+        playerPistolBulletList = new LinkedList<>();
 
-        // The screens that the game viewer is going to see
+        // Cameras and screen
         float aspectRatio = (float) Gdx.graphics.getHeight() / (float) Gdx.graphics.getWidth();
-
-
-
         camera = new OrthographicCamera(WORLD_HEIGHT * aspectRatio, WORLD_HEIGHT);
         buttonHasBeenPressed = false;
-
         if (clientWorld.getMyPlayerGameCharacter() != null) {
-            camera.position.set(clientWorld.getMyPlayerGameCharacter().getBoundingBox().getX(), clientWorld.getMyPlayerGameCharacter().getBoundingBox().getY(), 0);
+            camera.position.set(clientWorld.getMyPlayerGameCharacter().getBoundingBox().getX(),
+                    clientWorld.getMyPlayerGameCharacter().getBoundingBox().getY(), 0);
         } else {
             camera.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0);
         }
-
-
         scoreCam = new OrthographicCamera(WORLD_HEIGHT * aspectRatio, WORLD_HEIGHT);
         scoreCam.position.set(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, 0);
         this.stretchViewport = new StretchViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         stretchViewport.setCamera(scoreCam);
 
-        //setup textureAtlas
+        // TextureAtlas and background texture
         textureAtlas = new TextureAtlas("images4.atlas");
-
-        // Texture of the background testing
         tiledMap = new TmxMapLoader().load("DesertMap.tmx");
         tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
-        backgroundOffset = 0;
-
-        playerPistolBulletList = new LinkedList<>();
 
         batch = new SpriteBatch();
         batch.setProjectionMatrix(camera.combined);
-
         prepareHUD();
     }
 
-    @Override
-    public void show() {
-
+    public void setPlayerGameCharactersHaveLives(boolean playerGameCharactersHaveLives) {
+        this.playerGameCharactersHaveLives = playerGameCharactersHaveLives;
     }
 
+    public void registerClientConnection(ClientConnection clientConnection) {
+        this.clientConnection = clientConnection;
+    }
+
+    public boolean isRenderingBullets() {
+        return isRenderingBullets;
+    }
+
+    /**
+     * Method for drawing textures, heads-up display and handling camera positioning
+     * @param delta time
+     */
     @Override
     public void render(float delta) {
         if (clientWorld.getMyPlayerGameCharacter() != null && buttonHasBeenPressed) {
-            camera.position.set(clientWorld.getMyPlayerGameCharacter().getBoundingBox().getX(), clientWorld.getMyPlayerGameCharacter().getBoundingBox().getY(), 0);
+            camera.position.set(clientWorld.getMyPlayerGameCharacter().getBoundingBox().getX(),
+                    clientWorld.getMyPlayerGameCharacter().getBoundingBox().getY(), 0);
         } else if (clientWorld.getMyPlayerGameCharacter() != null && counter < 10) {
-            clientConnection.sendPlayerInformation(clientWorld.getMyPlayerGameCharacter().getMovementSpeed(), clientWorld.getMyPlayerGameCharacter().getMovementSpeed(), "up-right", clientWorld.getMyPlayerGameCharacter().getHealth());
+            clientConnection.sendPlayerInformation(clientWorld.getMyPlayerGameCharacter().getMovementSpeed(),
+                    clientWorld.getMyPlayerGameCharacter().getMovementSpeed(), "up-right", clientWorld.getMyPlayerGameCharacter().getHealth());
             camera.position.set(clientWorld.getMyPlayerGameCharacter().getBoundingBox().getX(), clientWorld.getMyPlayerGameCharacter().getBoundingBox().getY(), 0);
             counter++;
         }
@@ -134,67 +130,39 @@ public class GameScreen implements Screen, InputProcessor {
         tiledMapRenderer.render();
         batch.setProjectionMatrix(camera.combined);
 
-
-        // Kontrollib kas tegelase elud on 0
-        if (clientWorld.getMyPlayerGameCharacter() != null) {
-            clientWorld.getMyPlayerGameCharacter().controllCharacterIsHit();
+        // Sets game over screen when PlayerGameCharacters don't have lives
+        if (!playerGameCharactersHaveLives) {
+            clientConnection.getGameClient().setScreenToGameOver();
         }
 
         batch.begin();
 
         detectInput();
 
-        // Drawing characters.
-        List<GameCharacter> characterValues = new ArrayList<>(clientWorld.getWorldGameCharactersMap().values());
-        for (int i = 0; i < characterValues.size(); i++) {
-            GameCharacter character = characterValues.get(i);
-            character.setTextureString();
-            character.draw(batch);
-        }
-
-        // PistolBullet drawing
-        List<PistolBullet> currentBullets = clientWorld.getPistolBullets();
-        isRenderingBullets = true;
-        for (int i = 0; i < currentBullets.size(); i++) {
-            PistolBullet bullet = currentBullets.get(i);
-            PistolBullet newPistolBullet = pistolBulletPool.obtain();  // PistolBulletiPoolist võetakse PistolBullet, mida joonistada.
-            newPistolBullet.makePistolBullet(bullet.getBoundingBox(), bullet.getBulletTextureString(), bullet.getDirection(), bullet.getDamage());  // newPistolBulletile määratakse andmed, mis on Serverist tulnud kuulil.
-            newPistolBullet.draw(batch);  // Poolist võetud kuuli joonistatakse.
-            pistolBulletPool.free(newPistolBullet);  // Joonistatud kuul pannakse tagasi Pooli, et seda saaks hiljem uuesti võtta ja joonistada uute andmetega.
-        }
-        currentBullets.clear();
-        isRenderingBullets = false;
-
-        // Drawing zombies.
-        int size = clientWorld.getZombieHashMap().values().size();
-        List<Zombie> zombieValues = new ArrayList<>(clientWorld.getZombieHashMap().values());
-        for (int i = 0; i < size; i++) {
-            Zombie zombie = zombieValues.get(i);
-            Zombie newZombie = zombiePool.obtain();  // Tehtud sarnaselt PistolBulleti joonistamisega. Võimalik, et peak natuke teisiti tegema.
-            newZombie.makeZombie(zombie.getMovementSpeed(), zombie.getBoundingBox(), zombie.getBoundingBox().getX(), zombie.getBoundingBox().getY(), zombie.getBoundingBox().getWidth(), zombie.getBoundingBox().getHeight(), zombie.getCharacterTextureString());
-            newZombie.setTextureString();
-            newZombie.draw(batch);
-            zombiePool.free(newZombie);
-        }
+        // Drawing characters, bullets and zombies
+        drawPlayerGameCharacters();
+        drawPistolBullets();
+        drawZombies();
 
         // Ends displaying textures
         batch.setProjectionMatrix(camera.combined);
 
-        //hud rendering
+        // HUD rendering
         batch.setProjectionMatrix(stretchViewport.getCamera().combined);
         updateAndRenderHUD();
 
         batch.end();
     }
 
-
+    /**
+     * Method for sending information about client's PlayerGameCharacter's new position based on keyboard input.
+     */
     private void detectInput(){
         if (clientWorld.getMyPlayerGameCharacter() != null) {
             float movementSpeed = clientWorld.getMyPlayerGameCharacter().getMovementSpeed();
             int health = clientWorld.getMyPlayerGameCharacter().getHealth();
 
             if (Gdx.input.isKeyPressed(Input.Keys.ANY_KEY)) {
-                //This is needed for camera, so dont delete
                 buttonHasBeenPressed = true;
             }
 
@@ -225,97 +193,205 @@ public class GameScreen implements Screen, InputProcessor {
         }
     }
 
+    /**
+     * Method for preparing fonts for the heads-up display.
+     */
     private void prepareHUD() {
         FreeTypeFontGenerator fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("ZombieCarshel-B8rx.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter fontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        FreeTypeFontGenerator fontGenerator2 = new FreeTypeFontGenerator(Gdx.files.internal("ZombieCarshel-B8rx.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter fontParameter2 = new FreeTypeFontGenerator.FreeTypeFontParameter();
 
         fontParameter.size = 72;
         fontParameter.borderWidth = 3.6f;
         fontParameter.color = new Color(1, 1, 1, 0.3f);
         fontParameter.borderColor = new Color(0, 0, 0, 0.3f);
 
+        fontParameter2.size = 100;
+        fontParameter2.borderWidth = 0.1f;
+        fontParameter2.color = new Color(1, 1, 1, 0.3f);
+        fontParameter2.borderColor = new Color(0, 0, 0, 0.3f);
+
         font = fontGenerator.generateFont(fontParameter);
         font.getData().setScale(0.2f);
+        nameFont = fontGenerator2.generateFont(fontParameter2);
+        nameFont.getData().setScale(7 * nameFont.getScaleY() / nameFont.getLineHeight());
+        nameFont.setUseIntegerPositions(false);
+        fontGenerator.dispose();
+        fontGenerator2.dispose();
     }
 
-
+    /**
+     * Method for updating and drawing heads-up display.
+     */
     private void updateAndRenderHUD() {
+        // Upper bar
         font.draw(batch, "Score", font.getCapHeight() / 2 - 112, scoreCam.viewportHeight / 2 - 3);
         font.draw(batch, "Lives", font.getCapHeight() / 2 + 55, scoreCam.viewportHeight / 2 - 3);
         font.draw(batch, "Wave:", font.getCapHeight() / 2 - 28, scoreCam.viewportHeight / 2 - 3);
+
+        // Wave count
         if (clientWorld.getWaveCount() < 10) {
             font.draw(batch, String.format(Locale.getDefault(), "%01d", clientWorld.getWaveCount()), font.getCapHeight() / 2 - 15, scoreCam.viewportHeight / 2 - 19);
         } else {
             font.draw(batch, String.format(Locale.getDefault(), "%02d", clientWorld.getWaveCount()), font.getCapHeight() / 2 - 17, scoreCam.viewportHeight / 2 - 19);
         }
+
+        // Score, health, current weapon
         font.draw(batch, String.format(Locale.getDefault(), "%06d", clientWorld.getScore()), font.getCapHeight() / 2 - 112, scoreCam.viewportHeight / 2 - 19);
         if (clientWorld.getMyPlayerGameCharacter() != null) {
             font.draw(batch, String.format(Locale.getDefault(), "%02d", clientWorld.getMyPlayerGameCharacter().getHealth()), font.getCapHeight() / 2 + 66, scoreCam.viewportHeight / 2 - 19);
+            font.draw(batch, clientWorld.getMyPlayerGameCharacter().getCurrentWeapon(), font.getCapHeight() / 2 - 112, scoreCam.viewportHeight / 2 - 272);
         }
-        if (clientWorld.getScore() >= 1000 && weaponTimer > 0) {
-            font.draw(batch, "Press TAB to switch", font.getCapHeight() / 2 - 92, scoreCam.viewportHeight / 2 - 60);
-            font.draw(batch, "weapons", font.getCapHeight() / 2 - 43, scoreCam.viewportHeight / 2 - 80);
-            weaponTimer--;
+
+        // Notifications
+        if (clientWorld.getScore() >= 2500 && pistolTimer > 0) {
+            font.draw(batch, "You have unlocked a", font.getCapHeight() / 2 - 92, scoreCam.viewportHeight / 2 - 60);
+            font.draw(batch, "new weapon", font.getCapHeight() / 2 - 57, scoreCam.viewportHeight / 2 - 80);
+            pistolTimer--;
+        }
+        if (clientWorld.getScore() >= 1000 && shotgunTimer > 0) {
+            font.draw(batch, "You have unlocked a", font.getCapHeight() / 2 - 92, scoreCam.viewportHeight / 2 - 60);
+            font.draw(batch, "new weapon", font.getCapHeight() / 2 - 57, scoreCam.viewportHeight / 2 - 80);
+            shotgunTimer--;
+        }
+
+        // Instructions
+        if (instructionsTimer > 0) {
+            font.draw(batch, "How to play", font.getCapHeight() / 2 - 53, scoreCam.viewportHeight / 2 - 160);
+            font.draw(batch, "Move  WASD or arrows", font.getCapHeight() / 2 - 97, scoreCam.viewportHeight / 2 - 180);
+            font.draw(batch, "Shoot          spacebar", font.getCapHeight() / 2 - 97, scoreCam.viewportHeight / 2 - 200);
+            font.draw(batch, "Switch weapons    TAB", font.getCapHeight() / 2 - 97, scoreCam.viewportHeight / 2 - 220);
+            instructionsTimer--;
         }
     }
 
+    /**
+     * Method for drawing PlayerGameCharacters.
+     */
+    public void drawPlayerGameCharacters() {
+        List<PlayerGameCharacter> characterValues = new ArrayList<>(clientWorld.getWorldGameCharactersMap().values());
+        for (int i = 0; i < characterValues.size(); i++) {
+            PlayerGameCharacter character = characterValues.get(i);
+            character.setTextureForDirection();
+            character.draw(batch);
+            if (character.getName() != null) {
+                nameFont.draw(batch, character.getName(), character.getBoundingBox().getX() - nameFont.getSpaceXadvance() * character.getName().length() / 2, character.getBoundingBox().getY() + character.getBoundingBox().height + 12);
+            }
+        }
+    }
+
+    /**
+     * Method for drawing and pooling PistolBullets.
+     */
+    public void drawPistolBullets() {
+        List<PistolBullet> currentBullets = clientWorld.getPistolBullets();
+        isRenderingBullets = true;
+        try {
+            for (int i = 0; i < currentBullets.size(); i++) {
+                PistolBullet bullet = currentBullets.get(i);
+                PistolBullet newPistolBullet = pistolBulletPool.obtain();
+                newPistolBullet.makePistolBullet(bullet.getBoundingBox(), bullet.getBulletTextureString(), bullet.getDirection(), bullet.getDamage());
+                newPistolBullet.setTextureRegion();
+                newPistolBullet.draw(batch);
+                pistolBulletPool.free(newPistolBullet);
+            }
+            currentBullets.clear();
+            isRenderingBullets = false;
+        } catch (IndexOutOfBoundsException ignored) {
+            System.out.println("Wrong");
+        }
+    }
+
+    /**
+     * Method for drawing Zombies.
+     */
+    public void drawZombies() {
+        int size = clientWorld.getZombieHashMap().values().size();
+        List<Zombie> zombieValues = new ArrayList<>(clientWorld.getZombieHashMap().values());
+        for (int i = 0; i < size; i++) {
+            Zombie zombie = zombieValues.get(i);
+            Zombie newZombie = zombiePool.obtain();
+            newZombie.makeZombie(zombie.getMovementSpeed(), zombie.getBoundingBox(), zombie.getBoundingBox().getX(), zombie.getBoundingBox().getY(), zombie.getBoundingBox().getWidth(), zombie.getBoundingBox().getHeight());
+            newZombie.draw(batch);
+            zombiePool.free(newZombie);
+        }
+    }
+
+    /**
+     * Method for sending information about new bullets that were shot and for switching weapons.
+     *
+     * @param keycode current input
+     * @return boolean
+     */
+    @Override
+    public boolean keyDown(int keycode) {
+        PlayerGameCharacter character = clientWorld.getMyPlayerGameCharacter();
+        if (keycode == Input.Keys.SPACE) {
+            switch (character.getCurrentWeapon()) {
+                case "regular pistol":
+                    clientConnection.sendPlayerBulletInfo(character.getPlayerCharacterCurrentPistol().getBulletStraight().getBoundingBox().getX(),
+                            character.getPlayerCharacterCurrentPistol().getBulletStraight().getBoundingBox().getY(), "Fire Bullet", 1, character.getPlayerDirection());
+                    break;
+                case "shotgun":
+                    clientConnection.sendPlayerBulletInfo(character.getPlayerCharacterCurrentShotgun().getBulletStraight().getBoundingBox().getX(),
+                            character.getPlayerCharacterCurrentShotgun().getBulletStraight().getBoundingBox().getY(), "Fire Bullet", 1, character.getPlayerDirection());
+                    clientConnection.sendPlayerBulletInfo(character.getPlayerCharacterCurrentShotgun().getBulletLeft().getBoundingBox().getX(),
+                            character.getPlayerCharacterCurrentShotgun().getBulletLeft().getBoundingBox().getY(), "Fire Bullet", 1,
+                            character.getPlayerCharacterCurrentShotgun().setBulletLeftDirection(character.getPlayerDirection()));
+                    clientConnection.sendPlayerBulletInfo(character.getPlayerCharacterCurrentShotgun().getBulletRight().getBoundingBox().getX(),
+                            character.getPlayerCharacterCurrentShotgun().getBulletRight().getBoundingBox().getY(), "Fire Bullet", 1,
+                            character.getPlayerCharacterCurrentShotgun().setBulletRightDirection(character.getPlayerDirection()));
+                    break;
+                case "strong pistol":
+                    clientConnection.sendPlayerBulletInfo(character.getPlayerCharacterCurrentPistol().getBulletStraight().getBoundingBox().getX(),
+                            character.getPlayerCharacterCurrentPistol().getBulletStraight().getBoundingBox().getY(), "Red Bullet", 3, character.getPlayerDirection());
+                    break;
+            }
+        } else if (keycode == Input.Keys.TAB) {
+            if (character.getCurrentWeapon().equals("regular pistol") && clientWorld.getScore() >= 1000) {
+                character.setWeapon("shotgun");
+            } else if (character.getCurrentWeapon().equals("shotgun")) {
+                if (clientWorld.getScore() >= 2000) {
+                    character.setWeapon("strong pistol");
+                } else {
+                    character.setWeapon("regular pistol");
+                }
+            } else if (character.getCurrentWeapon().equals("strong pistol")) {
+                character.setWeapon("regular pistol");
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Resizing the camera.
+     */
     @Override
     public void resize(int width, int height) {
         batch.setProjectionMatrix(camera.combined);
         camera.update();
     }
 
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    @Override
-    public void hide() {
-
-    }
-
+    /**
+     * Disposing the batch.
+     */
     @Override
     public void dispose() {
         batch.dispose();
     }
 
-
-    // InputProcessor methods
     @Override
-    public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.SPACE) {
-            if (clientWorld.getMyPlayerGameCharacter().isPistol()) {
-                clientConnection.sendPlayerBulletInfo(clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentPistol().getBulletStraight().getBoundingBox().getX(),
-                        clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentPistol().getBulletStraight().getBoundingBox().getY(), "Fire Bullet", 1, clientWorld.getMyPlayerGameCharacter().getPlayerDirection());
-            } else if (!clientWorld.getMyPlayerGameCharacter().isPistol()) {
-                clientConnection.sendPlayerBulletInfo(clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentShotgun().getBulletStraight().getBoundingBox().getX(),
-                        clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentShotgun().getBulletStraight().getBoundingBox().getY(), "Fire Bullet", 1, clientWorld.getMyPlayerGameCharacter().getPlayerDirection());
+    public void pause() { }
 
-                clientConnection.sendPlayerBulletInfo(clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentShotgun().getBulletLeft().getBoundingBox().getX(),
-                        clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentShotgun().getBulletLeft().getBoundingBox().getY(), "Fire Bullet", 1,
-                        clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentShotgun().setBulletLeftDirection(clientWorld.getMyPlayerGameCharacter().getPlayerDirection()));
+    @Override
+    public void resume() { }
 
-                clientConnection.sendPlayerBulletInfo(clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentShotgun().getBulletRight().getBoundingBox().getX(),
-                        clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentShotgun().getBulletRight().getBoundingBox().getY(), "Fire Bullet", 1,
-                        clientWorld.getMyPlayerGameCharacter().getPlayerCharacterCurrentShotgun().setBulletRightDirection(clientWorld.getMyPlayerGameCharacter().getPlayerDirection()));
-            }
-        } else if (keycode == Input.Keys.TAB) {
-            if (clientWorld.getMyPlayerGameCharacter().isPistol()) {
-                if (clientWorld.getScore() >= 1000) {
-                    clientWorld.getMyPlayerGameCharacter().setIsPistol(false);
-                }
-            } else if (!clientWorld.getMyPlayerGameCharacter().isPistol()) {
-                clientWorld.getMyPlayerGameCharacter().setIsPistol(true);
-            }
-        }
-        return false;
-    }
+    @Override
+    public void hide() { }
+
+    @Override
+    public void show() { }
 
     @Override
     public boolean keyUp(int keycode) {

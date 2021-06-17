@@ -1,7 +1,5 @@
 package com.mygdx.game.Characters;
 
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.math.Rectangle;
@@ -19,61 +17,58 @@ import java.util.Objects;
 
 public class GameCharacter {
 
-    // character characteristics
-    float movementSpeed; //world units per second
+    // Character characteristics.
+    protected float movementSpeed; // World units per second.
     protected int health;
 
-    // position & dimension
-    float xPosition, yPosition; //lower-left corner
-    float width, height;
-    com.badlogic.gdx.math.Rectangle boundingBox;
+    // Position & dimension.
+    protected float xPosition, yPosition; // Lower-left corner
+    protected float width, height;
+    protected Rectangle boundingBox;
 
-    // graphics
-    String characterTextureString;
-    TextureRegion characterTexture;
     private String characterDirection;
 
-    protected World world;
+    private World world;
 
+    /**
+     * GameCharacter constructor.
+     *
+     * @param movementSpeed of the PlayerGameCharacter (float)
+     * @param boundingBox encapsulates a 2D rectangle(bounding box) for the PlayerGameCharacter (Rectangle)
+     * @param xPosition of the PlayerGameCharacter (float)
+     * @param yPosition of the PlayerGameCharacter (float)
+     * @param width of the PlayerGameCharacter (float)
+     * @param height of the PlayerGameCharacter (float)
+     * @param world game world (World)
+     */
     public GameCharacter(float movementSpeed, Rectangle boundingBox, float xPosition, float yPosition,
-                         float width, float height, String characterTextureString, World world) {
+                         float width, float height, World world) {
         this.movementSpeed = movementSpeed;
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.width = width;
         this.height = height;
-        this.characterTextureString = characterTextureString;
         this.boundingBox = boundingBox;
         this.world = world;
         defineCharacter();
     }
 
+    /**
+     * Define the GameCharacter's body.
+     */
     public void defineCharacter() {
-        BodyDef bdef = new BodyDef();
-        bdef.position.set(boundingBox.getX(), boundingBox.getY());
-        bdef.type = BodyDef.BodyType.DynamicBody;
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.position.set(boundingBox.getX(), boundingBox.getY());
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
 
-        Body b2bdy = world.getWorld2().createBody(bdef);
+        Body b2bdy = world.getGdxWorld().createBody(bodyDef);
 
-        FixtureDef fdef = new FixtureDef();
+        FixtureDef fixtureDef = new FixtureDef();
         CircleShape shape = new CircleShape();
         shape.setRadius(boundingBox.getWidth() / 2);
 
-        fdef.shape = shape;
-        b2bdy.createFixture(fdef);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GameCharacter that = (GameCharacter) o;
-        return Float.compare(that.movementSpeed, movementSpeed) == 0 && health == that.health && Float.compare(that.xPosition, xPosition) == 0 && Float.compare(that.yPosition, yPosition) == 0 && Float.compare(that.width, width) == 0 && Float.compare(that.height, height) == 0 && Objects.equals(characterTextureString, that.characterTextureString) && Objects.equals(characterTexture, that.characterTexture);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(movementSpeed, health, xPosition, yPosition, width, height, characterTextureString, characterTexture);
+        fixtureDef.shape = shape;
+        b2bdy.createFixture(fixtureDef);
     }
 
     public Rectangle getBoundingBox() {
@@ -84,34 +79,59 @@ public class GameCharacter {
         return health;
     }
 
-    // Liigutab uuele asukohale
-    public void moveToNewPos(float xPos, float yPos) {
-        this.boundingBox.set(boundingBox.getX() + xPos, boundingBox.getY() + yPos, boundingBox.getWidth(), boundingBox.getHeight());
-        if (collidesWithWalls(world.getMapLayer()) || collidesWithCharacter()) {
-            // if character intersects with wall object/rectangle than moves the character back
-            this.boundingBox.set(boundingBox.getX() - xPos, boundingBox.getY() - yPos, boundingBox.getWidth(), boundingBox.getHeight());
-        }
-    }
-
-    public void setPosition(Batch batch, float x, float y) {
-        batch.draw(characterTexture, x, y, width, height);
-    }
-
     public void setCharacterDirection(String direction) {
         this.characterDirection = direction;
     }
 
-    // Kontrollib, et pildid kattuvad või mitte.
+    public String getCharacterDirection() {
+        return characterDirection;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    /**
+     * Moves the GameCharacter to a new position.
+     *
+     * @param xPos change of the x coordinate
+     * @param yPos change of the y coordinate
+     */
+    public void moveToNewPos(float xPos, float yPos) {
+        this.boundingBox.set(boundingBox.getX() + xPos, boundingBox.getY() + yPos, boundingBox.getWidth(), boundingBox.getHeight());
+        if (collidesWithWalls(world.getMapLayer()) || collidesWithPlayerGameCharacter() || collidesWithZombie()) {
+            // If character intersects with wall object/rectangle than moves the character back.
+            this.boundingBox.set(boundingBox.getX() - xPos, boundingBox.getY() - yPos, boundingBox.getWidth(), boundingBox.getHeight());
+        }
+    }
+
+    /**
+     * Checks if GameCharacter has collided with the given PistolBullet.
+     *
+     * @param pistolBullet given PistolBullet
+     * @return boolean describing whether GameCharacter collides with the given PistolBullet instance
+     */
     public boolean collidesWithPistolBullet(PistolBullet pistolBullet) {
         Rectangle pistolBulletRectangle = pistolBullet.getBoundingBox();
-        boolean isHit = boundingBox.overlaps(pistolBulletRectangle); // Kontrollib, et nad kattuvad või mitte
+        boolean isHit = boundingBox.overlaps(pistolBulletRectangle);
         if (isHit) {
+            // Decrease health.
             characterIsHit(pistolBullet);
             return true;
         }
         return false;
     }
 
+    /**
+     * Checks if GameCharacter has collided with walls.
+     *
+     * @param mapLayer world map
+     * @return boolean describing whether GameCharacter collides with a wall
+     */
     public boolean collidesWithWalls(MapLayer mapLayer) {
         Array<RectangleMapObject> objects = mapLayer.getObjects().getByType(RectangleMapObject.class);
         for (int i = 0; i < objects.size; i++) {
@@ -124,48 +144,65 @@ public class GameCharacter {
         return false;
     }
 
-    public boolean collidesWithCharacter() {
+    /**
+     * Checks if there is a collision with a PlayerGameCharacter.
+     *
+     * @return boolean describing whether GameCharacter collides with a PlayerGameCharacter
+     */
+    public boolean collidesWithPlayerGameCharacter() {
         ArrayList<PlayerGameCharacter> clientsValues = new ArrayList<>(world.getClients().values());
         for (int i = 0; i < clientsValues.size(); i++) {
             PlayerGameCharacter playerGameCharacter = clientsValues.get(i);
-            if (this.getClass().equals(Zombie.class) && playerGameCharacter.getBoundingBox().overlaps(boundingBox)) {
-                playerGameCharacter.collidesWithZombie((Zombie) this);
-                return true;
-            }
-            if (playerGameCharacter.boundingBox.overlaps(boundingBox) && playerGameCharacter != this) {
-                return true;
-            }
-        }
-        ArrayList<Zombie> zombieValues = new ArrayList<>(world.getZombieMap().values());
-        for (int i = 0; i < zombieValues.size(); i++) {
-            Zombie zombie = zombieValues.get(i);
-            if (this.getClass().equals(PlayerGameCharacter.class) && zombie.getBoundingBox().overlaps(boundingBox)) {
-               ((PlayerGameCharacter) this).collidesWithZombie(zombie);
-               return true;
-            }
-            if (zombie.boundingBox.overlaps(boundingBox) && zombie != this) {
+            if (playerGameCharacter.getBoundingBox().overlaps(boundingBox) && playerGameCharacter != this) {
+                if (this.getClass().equals(Zombie.class)) {
+                    // If Zombie collides with PlayerGameCharacter then PlayerGameCharacter's health decreases.
+                    playerGameCharacter.collidesWithZombie((Zombie) this);
+                }
                 return true;
             }
         }
         return false;
     }
 
+    /**
+     * Checks if there is a collision with a Zombie.
+     *
+     * @return boolean describing whether GameCharacter collides with a Zombie
+     */
+    public boolean collidesWithZombie() {
+        ArrayList<Zombie> zombieValues = new ArrayList<>(world.getZombieMap().values());
+        for (int i = 0; i < zombieValues.size(); i++) {
+            Zombie zombie = zombieValues.get(i);
+            if (zombie.getBoundingBox().overlaps(boundingBox) && zombie != this) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Reduces GameCharacter's health when GameCharacter is hit with a PistolBullet.
+     *
+     * @param pistolBullet that collides with GameCharacter
+     */
     public void characterIsHit(PistolBullet pistolBullet) {
-        // Tegelast ei eemaldata mängust, kui elud on 0.
-        System.out.println("Elud: " + health);
         if (health > 0) {
-            health -= pistolBullet.getDamage(); // Saab pihta, elu väheneb.
-        }
-        if (health <= 0) {
-            // Elud on otsas.
+            health -= pistolBullet.getDamage();
         }
     }
 
-    public void setWorld(World world) {
-        this.world = world;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GameCharacter that = (GameCharacter) o;
+        return Float.compare(that.movementSpeed, movementSpeed) == 0 && health == that.health
+                && Float.compare(that.xPosition, xPosition) == 0 && Float.compare(that.yPosition, yPosition) == 0
+                && Float.compare(that.width, width) == 0 && Float.compare(that.height, height) == 0;
     }
 
-    public World getWorld() {
-        return world;
+    @Override
+    public int hashCode() {
+        return Objects.hash(movementSpeed, health, xPosition, yPosition, width, height);
     }
 }

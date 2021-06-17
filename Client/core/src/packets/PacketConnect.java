@@ -1,12 +1,12 @@
 package packets;
 
+/**
+ * Packet that is used when a client wants to connect to the server.
+ */
 public class PacketConnect extends Packet {
 
     private String playerName;
-    // Siin peaks mingi id vms ka olema
-    // Peaks seda pakki täiendama?
 
-    // rewrite the playerName of the packet
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
     }

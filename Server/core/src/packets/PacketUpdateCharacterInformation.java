@@ -1,26 +1,16 @@
 package packets;
 
+/**
+ * Packet for sending info about updated PlayerGameCharacter instance to all connections.
+ */
 public class PacketUpdateCharacterInformation extends Packet {
-    /**
-     * When this packet is sent to the server it increments(value to add or subtract by) Characters info
-     * When this packet is sent form server to Client it changes the characters info that sets the Characters position in Clients world
-     */
 
     private String playerName;
     private int id;
     private float x;
     private float y;
     private String direction;
-    private String characterTextureString;
     private int health;
-
-    public String getCharacterTextureString() {
-        return characterTextureString;
-    }
-
-    public void setCharacterTextureString(String characterTextureString) {
-        this.characterTextureString = characterTextureString;
-    }
 
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
@@ -60,6 +50,10 @@ public class PacketUpdateCharacterInformation extends Packet {
 
     public void setDirection(String direction) {
         this.direction = direction;
+    }
+
+    public int getHealth() {
+        return health;
     }
 
     public void setHealth(int health) {

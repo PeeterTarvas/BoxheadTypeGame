@@ -1,25 +1,17 @@
 package packets;
 
-import com.mygdx.game.Characters.GameCharacter;
-
+/**
+ * Packet for sending disconnected client's id to other connections.
+ */
 public class PacketClientDisconnect extends Packet {
-    GameCharacter gameCharacter;
-    String playerName;
 
-    public void setGameCharacter(GameCharacter character){
-        this.gameCharacter = character;
+    private int id;
+
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
+    public int getId() {
+        return id;
     }
-
-    public String getPlayerName(){
-        return playerName;
-    }
-
-    public GameCharacter getGameCharacter(){
-        return gameCharacter;
-    }
-
 }

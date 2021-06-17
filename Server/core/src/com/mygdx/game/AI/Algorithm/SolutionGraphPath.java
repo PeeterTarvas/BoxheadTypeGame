@@ -6,8 +6,12 @@ import com.mygdx.game.AI.MapInfo.Node;
 
 import java.util.Iterator;
 
+/**
+ * Class is used to store a path with nodes.
+ */
 public class SolutionGraphPath implements GraphPath<Node> {
 
+    // Path from start node to end node is stored in nodes variable.
     private Array<Node> nodes = new Array<Node>();
 
     @Override

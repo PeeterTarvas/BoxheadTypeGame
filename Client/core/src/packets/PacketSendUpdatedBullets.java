@@ -5,7 +5,10 @@ import com.mygdx.game.Weapons.PistolBullet;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PacketSendUpdatedBullets extends  Packet {
+/**
+ * Packet for sending list of updated bullets to all connections.
+ */
+public class PacketSendUpdatedBullets extends Packet {
 
     private List<PistolBullet> updatedBullets = new LinkedList<>();
 

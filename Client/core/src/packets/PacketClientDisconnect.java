@@ -1,16 +1,17 @@
 package packets;
 
+/**
+ * Packet for sending disconnected client's id to other connections.
+ */
 public class PacketClientDisconnect extends Packet {
 
-    // Seda pakki peab muutma.
-    String playerName;
+    private int id;
 
-    // rewrite the playername of the packet
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public String getPlayerName(){
-        return playerName;
+    public int getId() {
+        return id;
     }
 }

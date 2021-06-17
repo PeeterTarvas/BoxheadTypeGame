@@ -15,35 +15,52 @@ public class GameClient extends Game {
 	private GameScreen gameScreen;
 	private ClientConnection clientConnection;
 	private ClientWorld clientWorld;
-	private String playername;
+	private String playerName;
+	private MenuScreen menuScreen;
 
-
-	// Method creates a new Client with ClientWorld and GameScreen who connects to the Server.
+	/**
+	 * Method creates a new Client who connects to the Server with its ClientWorld and GameScreen.
+	 */
 	public void createClient(ClientWorld clientWorld, GameScreen gameScreen) throws IOException {
-		clientConnection = new ClientConnection();  // Loob ühenduse Serveriga.
+		clientConnection = new ClientConnection();
 		clientConnection.setGameScreen(gameScreen);
-		clientConnection.setNetwork(clientWorld);
-		clientConnection.setPlayerName(playername);
+		clientConnection.setClientWorld(clientWorld);
+		clientConnection.setPlayerName(playerName);
 		clientConnection.setGameClient(this);
+		clientConnection.sendPacketConnect(playerName);
 		gameScreen.registerClientConnection(clientConnection);
 		clientWorld.registerClient(clientConnection);
 	}
 
-	public ClientConnection getClientConnection(){
-		return this.clientConnection;
+	public void setPlayerName(String name) {
+		this.playerName = name;
 	}
 
+	/**
+	 * Sets the screen to game over screen.
+	 */
+	public void setScreenToGameOver() {
+		GameOverScreen gameOverScreen = new GameOverScreen(this, clientWorld);
+		setScreen(gameOverScreen);
+	}
 
-	 // Creates the gameScreen and clientWorld that holds information about the game.
-	 // Also creates clientConnection and gives it clientWorld and gameScreen.
+	/**
+	 * Creates the menu screen.
+	 */
 	@Override
 	public void create() {
-
-		MenuScreen menuScreen = new MenuScreen(this);
+		this.menuScreen = new MenuScreen(this);
 		setScreen(menuScreen);
 	}
 
-	public void StartGame() {
+	public void showFull() {
+		this.menuScreen.showFull(menuScreen.getStage());
+	}
+
+	/**
+	 * Starts a game and tries to create a new client.
+	 */
+	public void startGame() {
 		clientWorld = new ClientWorld();
 		gameScreen = new GameScreen(clientWorld);
 		setScreen(gameScreen);
@@ -55,17 +72,9 @@ public class GameClient extends Game {
 		Gdx.input.setInputProcessor(gameScreen);
 	}
 
-
-	public void setScreenToGameOver() {
-		GameOverScreen gameOverScreen = new GameOverScreen(this, clientWorld);
-		setScreen(gameOverScreen);
-	}
-
-	public void setPlayerName(String name) {
-		this.playername = name;
-	}
-
-
+	/**
+	 * Disposes the screen.
+	 */
 	@Override
 	public void dispose() {
 		gameScreen.dispose();
