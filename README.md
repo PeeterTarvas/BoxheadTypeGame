@@ -1,5 +1,54 @@
-<blockquote>
-    So as a warning this project is being developed in another site called Gitlab, but I posted it here so it can be viewd. The main point of the project is to make a copy of an old browser game called Boxhead or atleast the main inspiration for the game is form boxhead (see the youtube link below to see what boxhead looks like). This game is being developed by me and two of my friends. We used Libgdx frameworkd and kryonet library to make the game. To start the game you just have to start the server first(will create server localy on your computer) and then launch the game on client side by starting the game at DesktopLauncher. This project isn't finished yet so the game is quite buggy at times. Furthermore we haven't written any documentation or tests and at some places the code is quite baddly structured.
+Overview
 
-    https://www.youtube.com/watch?v=8ySF9Gfu9Y8&feature=emb_title
-<blockquote>
+NB game can only be played with 3 players!
+
+
+Real time 2D retro zombie shooter game that can be played with 3 players.
+
+
+Goal of the game is to stay alive as a team for as long as possible to collectively achieve a high score. Game ends when someone from the team dies or exits from the game.
+
+
+Zombies spawn into the world in waves, and the number of zombies increases with every wave
+
+
+Players start with a regular pistol, but can also unlock a shotgun at 1000 points, and a pistol with stronger bullets at 2000 points
+
+
+Players have 100 lives, zombies have 10 lives, 1 kill gives 100 points
+
+
+For zombies: regular bullets take 1 life, stronger bullets take 3 lives
+
+
+For players: regular bullets take 5 lives, stronger bullets take 15 lives – be careful!
+
+
+
+How to play
+
+Requirements: java 8, 2 friends
+
+Download and run jar file
+
+Controls:
+
+
+
+WASD or arrow keys to move
+
+
+
+spacebar to shoot
+
+
+
+Tab to switch weapons
+
+
+
+use mouse to navigate in the menu
+
+
+
+Project documantation is at gitlab page: https://petarv.pages.taltech.ee/iti0301-2021-docs/page/first/
