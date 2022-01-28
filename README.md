@@ -34,6 +34,3 @@
 - #### use mouse to navigate in the menu 
 
 
-
-## Project documantation is at gitlab page: https://petarv.pages.taltech.ee/iti0301-2021-docs/page/first/
-
